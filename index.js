@@ -14,9 +14,6 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.nqqpx5x.mongodb.net/?retryWrites=true&w=majority`;
 const clientDB = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-console.log(uri);
-
-
 async function run() {
     try{
 
@@ -26,9 +23,16 @@ async function run() {
             const query = {};
             const cursor = userCollection.find(query)
             const userdatas = await cursor.toArray();
-            //const count = await userCollection.estimatedDocumentCount();
             res.send(userdatas);
         });
+
+        // Only Three Data for UI
+        app.get('/threedata', async(req, res) => {
+            const threes = {}
+            const querydata = userCollection.find(threes);
+            const three = await querydata.limit(3).toArray();
+            res.send(three);
+        }); 
 
 
     }
