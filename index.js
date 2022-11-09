@@ -42,6 +42,13 @@ async function run() {
             res.send(singlepost);
         });
 
+        // Recived Service Data from Add New Form
+        app.post('/users', async(req, res) => {
+            const service = req.body;
+            const addService = await userCollection.insertOne(service);
+            res.send(addService)
+        });
+
 
     }
     finally {
