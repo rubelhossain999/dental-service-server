@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -15,11 +15,11 @@ const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD
 const clientDB = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run() {
-    try{
+    try {
 
         const userCollection = clientDB.db('assignment').collection('users')
 
-        app.get('/users', async(req, res) => {
+        app.get('/users', async (req, res) => {
             const query = {};
             const cursor = userCollection.find(query)
             const userdatas = await cursor.toArray();
@@ -27,20 +27,28 @@ async function run() {
         });
 
         // Only Three Data for UI
-        app.get('/threedata', async(req, res) => {
+        app.get('/threedata', async (req, res) => {
             const threes = {}
             const querydata = userCollection.find(threes);
             const three = await querydata.limit(3).toArray();
             res.send(three);
-        }); 
+        });
+
+        // Specific id Display
+        app.get('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const singlepost = await userCollection.findOne(query);
+            res.send(singlepost);
+        });
 
 
     }
-    finally{
+    finally {
 
     }
 }
-run().catch( error => console.log(error))
+run().catch(error => console.log(error))
 
 
 
