@@ -1,5 +1,6 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const jwt = require('jsonwebtoken')
 const express = require('express');
 const cors = require('cors');
 const { query } = require('express');
@@ -20,6 +21,12 @@ async function run() {
 
         const userCollection = clientDB.db('assignment').collection('users');
         const reviewCollection = clientDB.db('reviewCustomer').collection('reviews');
+
+        //// JWT Token
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            console.log(user);
+        });
 
         app.get('/users', async (req, res) => {
             const query = {};
@@ -82,15 +89,32 @@ async function run() {
             res.send(singlepost);
         });
 
-        /// Delete The Review Items
+        // Review update
+        app.put('/reviews/:id', async(req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const reviewUdate = req.body;
+            const option = {upsert: true};
+            const updateReview = {
+                $set: {
+                    name: reviewUdate.name,
+                    email: reviewUdate.email,
+                    description: reviewUdate.description,
+                    image: reviewUdate.image,
+                }
+            }
+            const result = await reviewCollection.updateOne(filter, updateReview, option)
+            res.send(result);
+        });
 
+        /// Delete The Review Items
         app.delete('/reviews/:id', async (req, res) => {
             const id = req.params.id;
             const querydelete = { _id: ObjectId(id) };
             const resultdelete = await reviewCollection.deleteOne(querydelete);
-            console.log(resultdelete);
             res.send(resultdelete);
         });
+
 
 
     }
