@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { query } = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -44,19 +45,36 @@ async function run() {
         });
 
         // Recived Service Data from Add New Form
-        app.post('/users', async(req, res) => {
+        app.post('/users', async (req, res) => {
             const service = req.body;
             const addService = await userCollection.insertOne(service);
             res.send(addService)
         });
 
+        ///////////////////////////////////// Review Method ////////////////////////////////////
+
         // Insert the review from the ui customer
-        app.post('/reviews', async(req, res) => {
+        app.post('/reviews', async (req, res) => {
             const review = req.body;
             const addreview = await reviewCollection.insertOne(review);
             res.send(addreview);
 
         });
+
+        // Get the review info
+        app.get('/reviews', async (req, res) => {
+            let query = {};
+            if (req.query.email) {
+                query = {
+                    email: req.query.email
+                }
+            }
+            const reviewCursor = reviewCollection.find(query);
+            const reviewResult = await reviewCursor.toArray();
+            res.send(reviewResult);
+        });
+
+
 
 
     }
