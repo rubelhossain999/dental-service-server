@@ -16,6 +16,21 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.nqqpx5x.mongodb.net/?retryWrites=true&w=majority`;
 const clientDB = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyjwt(req, res, next) {
+    const authheader = req.authheader.authorization;
+    if (!authheader) {
+        res.status(401).send({message: 'UNauthorization'})
+    }
+    const token = authheader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded){
+        if(err){
+            res.status(401).send({message: 'UNauthorization Access'})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run() {
     try {
 
@@ -25,7 +40,10 @@ async function run() {
         //// JWT Token
         app.post('/jwt', (req, res) => {
             const user = req.body;
-            console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1h'
+            })
+            res.send({ token })
         });
 
         app.get('/users', async (req, res) => {
@@ -90,11 +108,11 @@ async function run() {
         });
 
         // Review update
-        app.put('/reviews/:id', async(req, res) => {
+        app.put('/reviews/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const reviewUdate = req.body;
-            const option = {upsert: true};
+            const option = { upsert: true };
             const updateReview = {
                 $set: {
                     name: reviewUdate.name,
